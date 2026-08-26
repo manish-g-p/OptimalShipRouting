@@ -1,164 +1,112 @@
-# 🧭 Optimal Ship Routing (Nautilus)
+# Optimal Ship Routing System
 
-Optimal ship routing over the **seas around India** using classical
-pathfinding (Dijkstra + weather-aware A\*) plus a **lightweight ML speed
-model**, over real geospatial + wave data — exactly as described in the
-project synopsis.
+Nautilus is a weather-aware ship-routing system for the seas surrounding
+India. It combines safe-water grid generation, Dijkstra's algorithm,
+weather-aware A* routing, and a machine-learning vessel-speed model.
 
-- **100% free / offline** — no paid APIs, no cloud, no subscriptions.
-- **Laptop-safe** — the giant raw datasets are shrunk **once** to tiny
-  files; nothing else ever loads them. Routing takes ~1 second; the ML
-  model trains in a couple of seconds.
-- **Machine-learning decision layer** — a scikit-learn model predicts the
-  vessel's attainable speed from the sea state; the A\* uses that as its
-  travel-time cost (matches the synopsis's "ML-based decision techniques").
+## Features
 
----
+- Safe routing based on bathymetry, minimum depth, and coast-buffer rules.
+- Traditional shortest-distance routing using Dijkstra's algorithm.
+- Weather-aware travel-time routing using A* and predicted vessel speed.
+- Typical, rough, and live marine-weather scenarios.
+- Flask web application with Google Maps visualization.
+- Streamlit interface that does not require a Google Maps API key.
+- Evaluation of proposed and traditional routes.
 
-## What it does
+## Requirements
 
-1. **Shrinks** the raw data (one time):
-   - `GEBCO_2024_sub_ice_topo.nc` (7.4 GB) → `bathymetry.npz` (~0.8 MB)
-   - `data_stream-wave_stepType-instant.nc` (4.1 GB) → `weather.npz` (~0.03 MB)
-   It also writes a **normalized weather CSV** (`weather_grid.csv`) and
-   builds two scenarios: **typical** (time-mean) and **rough** (simulated
-   storm, 95th-percentile waves).
-2. **Builds a navigable ocean grid**: deep water only, excluding land,
-   shoals, and anything within **22 km of the coast**. A KD-tree snaps
-   any port to the nearest safe sea cell.
-3. **Trains an ML speed model** (`src/ml_model.py`): a scikit-learn
-   RandomForest predicts attainable ship speed from wave height,
-   direction, period and the chosen vessel's parameters.
-4. **Routes** between Indian ports with two algorithms:
-   - **Dijkstra** — shortest safe distance (traditional baseline)
-   - **Weather-aware A\*** — cost = distance ÷ ML-predicted speed, so it
-     optimizes for calmer, faster, safer water (proposed system)
-5. **Evaluates** proposed vs traditional (`src/evaluate.py`) on the
-   synopsis's metrics: computational efficiency, route optimality, safety
-   compliance, adaptability.
-6. **Nautilus web UI** — pick a **vessel**, ports, and weather scenario;
-   compare routes on an interactive map with a wave-height overlay and
-   **per-point weather tooltips**.
-
----
-
-## Setup (one time)
-
-Everything is already installed on this machine. On a fresh machine:
+Python 3.10 or later is recommended. Install the dependencies with:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Run
+## Data Preparation
 
-**Step 1 — shrink the raw data (only needed once):**
+The raw GEBCO bathymetry and wave NetCDF files are not included in this
+repository because of their size. Obtain the required source datasets and
+place them in the project root with the filenames expected by `config.py`.
+Then run:
 
 ```bash
 python -m src.preprocess
 ```
 
-**Step 2 — launch the Nautilus web app.** There are two front-ends:
+This generates the processed bathymetry, weather, grid, and evaluation
+artifacts in `data/processed/`.
 
-### A) Polished Google Maps app (recommended)
+## Running the Applications
 
-```bash
+### Flask and Google Maps interface
+
+Set the API key in the environment. On Windows PowerShell:
+
+```powershell
+$env:GOOGLE_MAPS_API_KEY = "your-key"
 python server.py
 ```
 
-Then open **http://localhost:8000**. Pick a vessel, origin & destination,
-a weather scenario (**Typical / Rough / Live**), and click **Find optimal
-route**. Features: satellite/road Google Maps, animated route, live wave
-overlay, clickable weather tooltips, side-by-side metric cards.
+Open `http://localhost:8000`. Restrict the Google key to the local
+application origin and to the Google Maps JavaScript API. Never store an API
+key in source code or commit it to the repository.
 
-> **Google Maps key setup (one time).** Set `GOOGLE_MAPS_API_KEY` in your
-> environment; `web_config.py` reads it without storing the key in the repo.
-> In Google Cloud Console → your key:
-> set **Application restrictions → Websites** and add
-> `http://localhost:8000/*` and `http://127.0.0.1:8000/*`, then
-> **API restrictions → restrict to "Maps JavaScript API"**. If the map
-> ever shows a *RefererNotAllowed* error, temporarily set restrictions to
-> **None** while developing. Keep the key in your environment and never
-> commit it to the repository.
-
-### B) Simple Streamlit app (no API key needed)
+### Streamlit interface
 
 ```bash
 streamlit run app.py
 ```
 
-Open http://localhost:8501. Uses free open-source maps (no Google key).
+Open `http://localhost:8501`.
 
-**Optional — run the full pipeline + evaluation (for report numbers):**
+### Full pipeline and evaluation
 
 ```bash
 python run_all.py
 ```
 
-This trains the ML model (if needed) and prints/saves the proposed-vs-
-traditional evaluation table to `data/processed/evaluation.csv`.
-
-**Retrain the ML model on its own:**
+To retrain the speed model independently:
 
 ```bash
 python -m src.ml_model
 ```
 
----
+## Repository Contents
 
-## 💾 Reclaim ~11.5 GB of storage (recommended)
-
-After Step 1 succeeds, the two big `.nc` files are **no longer needed**
-to run the project. You can move them to an external drive or delete
-them (GEBCO is always free to re-download). The project then lives in
-under ~1 MB of processed data.
-
-```
-data/processed/bathymetry.npz   # ~0.8 MB
-data/processed/weather.npz      # ~0.03 MB
-data/processed/grid.npz         # built on first run
+```text
+config.py            Application and routing configuration
+web_config.py        Environment-based API key configuration
+server.py            Flask backend and routing API
+app.py               Streamlit interface
+run_all.py           End-to-end pipeline and evaluation runner
+src/                 Data processing, routing, weather, and model modules
+web/                 Front-end files for the Flask application
+data/processed/      Generated routing and model artifacts
 ```
 
----
+## Configuration
 
-## Project layout
+Edit `config.py` to change the geographic bounding box, grid resolution,
+minimum water depth, coast buffer, vessel speed, or weather cost weights.
 
-```
-config.py            # region, resolution, safety + cost settings (edit here)
-web_config.py        # Google Maps key from GOOGLE_MAPS_API_KEY + port
-run_all.py           # headless end-to-end runner (+ evaluation)
-server.py            # Flask backend + API for the Google Maps web app
-web/                 # polished front-end (index.html, style.css, app.js)
-app.py               # simple Streamlit UI (Google-key-free alternative)
-src/
-  preprocess.py      # Step 1: shrink GEBCO + waves; write weather CSV + scenarios
-  grid.py            # navigable mask, coast exclusion, KD-tree
-  weather.py         # wave field -> routing grid + analytic cost multiplier
-  ml_model.py        # scikit-learn speed model (ML decision layer)
-  vessel.py          # vessel types + parameters
-  routing.py         # Dijkstra + weather-aware A* (ML-cost aware)
-  evaluate.py        # proposed-vs-traditional metrics
-  live_weather.py    # real-time waves via free Open-Meteo Marine API
-  geo.py             # great-circle distance / bearing helpers
-  ports.py           # Indian ports (+ common foreign approaches)
-data/processed/      # small cached outputs (npz, csv, joblib)
-```
+## Files Not Uploaded to GitHub
 
-## Tuning
+The following local files and directories are intentionally excluded:
 
-Open `config.py`:
+- `GEBCO_2024_sub_ice_topo.nc` (approximately 7.4 GB)
+- `data_stream-wave_stepType-instant.nc` (approximately 4.1 GB)
+- `.claude/` local tooling configuration
+- `__pycache__/` and compiled Python files
+- `.env` and Streamlit secret files
+- PDF and PowerPoint presentation files
 
-- `GRID_RES` — bigger = faster/lighter, smaller = finer routes.
-- `LAT_MIN/MAX`, `LON_MIN/MAX` — change the region.
-- `COAST_BUFFER_KM`, `MIN_DEPTH_M` — safety constraints.
-- `W_WAVE_HEIGHT`, `W_HEAD_SEAS`, `W_PERIOD` — how strongly weather bends
-  the A\* route. Increase them and the A\* route visibly avoids rough seas.
+The two NetCDF datasets exceed GitHub's 100 MB per-file limit and must be
+stored locally or obtained from their respective data providers. The
+processed artifacts in `data/processed/` are included to support normal
+application use after cloning.
 
-## Future scope
+## Future Improvements
 
-- Swap the time-averaged / scenario weather for a **live** feed (the free
-  Open-Meteo Marine API, no key) or a specific forecast timestamp.
-- Extend the region for global voyages by widening the bounding box in
-  `config.py` and re-running `python -m src.preprocess`.
-- Train the ML speed model on **real AIS speed logs** instead of the
-  synthesized speed-loss dataset, for site-specific accuracy.
+- Use forecast timestamps instead of time-averaged weather scenarios.
+- Extend the routing region beyond the seas around India.
+- Train the speed model with real AIS vessel data.
