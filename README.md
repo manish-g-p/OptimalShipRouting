@@ -71,13 +71,15 @@ a weather scenario (**Typical / Rough / Live**), and click **Find optimal
 route**. Features: satellite/road Google Maps, animated route, live wave
 overlay, clickable weather tooltips, side-by-side metric cards.
 
-> **Google Maps key setup (one time).** Your key lives in the local,
-> git-ignored `web_config.py`. In Google Cloud Console → your key:
+> **Google Maps key setup (one time).** Set `GOOGLE_MAPS_API_KEY` in your
+> environment; `web_config.py` reads it without storing the key in the repo.
+> In Google Cloud Console → your key:
 > set **Application restrictions → Websites** and add
 > `http://localhost:8000/*` and `http://127.0.0.1:8000/*`, then
 > **API restrictions → restrict to "Maps JavaScript API"**. If the map
 > ever shows a *RefererNotAllowed* error, temporarily set restrictions to
-> **None** while developing. **Never commit or share `web_config.py`.**
+> **None** while developing. Keep the key in your environment and never
+> commit it to the repository.
 
 ### B) Simple Streamlit app (no API key needed)
 
@@ -123,7 +125,7 @@ data/processed/grid.npz         # built on first run
 
 ```
 config.py            # region, resolution, safety + cost settings (edit here)
-web_config.py        # PRIVATE: Google Maps key + port (git-ignored)
+web_config.py        # Google Maps key from GOOGLE_MAPS_API_KEY + port
 run_all.py           # headless end-to-end runner (+ evaluation)
 server.py            # Flask backend + API for the Google Maps web app
 web/                 # polished front-end (index.html, style.css, app.js)

@@ -1,5 +1,4 @@
 # --- Secrets: never share your API key ---
-web_config.py
 .env
 .streamlit/secrets.toml
 
