@@ -1,0 +1,18 @@
+# Everything here is free and open-source. All already installed on this
+# machine; this file just records what the project needs.
+numpy
+scipy
+xarray
+netCDF4
+dask
+networkx
+scikit-learn
+joblib
+pandas
+matplotlib
+requests
+flask
+flask-cors
+streamlit
+folium
+streamlit-folium

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nautilus · Optimal Ship Routing</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Control panel -->
+  <aside class="panel panel-left glass">
+    <header class="brand">
+      <div class="brand-mark">🧭</div>
+      <div>
+        <h1>Nautilus</h1>
+        <p>Optimal Ship Routing · India</p>
+      </div>
+    </header>
+
+    <div class="field">
+      <label>Vessel</label>
+      <select id="vessel"></select>
+      <small id="vessel-info" class="hint"></small>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Origin</label>
+        <select id="origin"></select>
+      </div>
+      <div class="field">
+        <label>Destination</label>
+        <select id="dest"></select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Weather scenario</label>
+      <div class="segmented" id="scenario">
+        <button data-val="typical" class="active">Typical</button>
+        <button data-val="rough">Rough</button>
+        <button data-val="live">● Live</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Algorithms</label>
+      <div class="toggles">
+        <label class="chk"><input type="checkbox" id="use-dijkstra" checked />
+          <span>Dijkstra <em>traditional</em></span></label>
+        <label class="chk"><input type="checkbox" id="use-astar" checked />
+          <span>Weather-aware A* <em>proposed</em></span></label>
+        <label class="chk"><input type="checkbox" id="use-ml" checked />
+          <span>ML speed model <em>drives A* cost</em></span></label>
+        <label class="chk"><input type="checkbox" id="use-waves" checked />
+          <span>Wave heatmap</span></label>
+      </div>
+    </div>
+
+    <button id="go" class="btn-primary">🚢 Find optimal route</button>
+    <div id="status" class="status"></div>
+  </aside>
+
+  <!-- Results panel -->
+  <section class="panel panel-right glass hidden" id="results">
+    <h2>Route comparison</h2>
+    <div id="cards" class="cards"></div>
+    <p id="verdict" class="verdict"></p>
+  </section>
+
+  <!-- Wave legend -->
+  <div class="legend glass hidden" id="legend">
+    <span class="legend-title">Wave height</span>
+    <div class="legend-bar"></div>
+    <div class="legend-scale"><span>calm</span><span id="legend-max">m</span></div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div id="loading" class="loading hidden">
+    <div class="spinner"></div>
+    <p id="loading-text">Computing optimal route…</p>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=__MAPS_KEY__&libraries=visualization,geometry&callback=initApp&loading=async"
+    async defer></script>
+</body>
+</html>

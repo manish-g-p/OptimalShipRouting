@@ -1,0 +1,16 @@
+# --- Secrets: never share your API key ---
+web_config.py
+.env
+.streamlit/secrets.toml
+
+# --- Big raw datasets (re-downloadable) ---
+*.nc
+
+# --- Generated / cached outputs ---
+data/processed/
+__pycache__/
+*.pyc
+
+# --- Local tooling ---
+.claude/
+.venv/
